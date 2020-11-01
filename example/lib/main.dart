@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:address_search_text_field/address_search_text_field.dart';
+import 'package:address_search_field/address_search_field.dart';
 import 'package:toast/toast.dart'; // External library
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: PageOne(),
-    );
-  }
+void main() {
+  runApp(MaterialApp(
+    title: 'Flutter Demo',
+    theme: ThemeData(
+      primarySwatch: Colors.blue,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+    ),
+    home: PageOne(),
+  ));
 }
 
 class PageOne extends StatefulWidget {
@@ -37,7 +33,7 @@ class _PageOneState extends State<PageOne> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              AddressSearchTextField(
+              AddressSearchField(
                 controller: controller,
                 country: "Ecuador",
                 city: "Esmeraldas",
@@ -48,7 +44,7 @@ class _PageOneState extends State<PageOne> {
                   "Esmeraldas Province, Ecuador",
                   "Ecuador"
                 ],
-                onDone: (AddressPoint point) async {
+                onDone: (BuildContext dialogContext, AddressPoint point) async {
                   AddressPoint point2;
                   if (point.latitude != null)
                     point2 = await AddressPoint.fromPoint(
@@ -58,9 +54,9 @@ class _PageOneState extends State<PageOne> {
                   setState(() {
                     text = "${point.toString()}\n\n${point2.toString()}";
                   });
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
                 },
-                onCleaned: () => print("limpio"),
+                onCleaned: () => print("clean"),
               ),
               Container(
                 margin: EdgeInsets.symmetric(vertical: 30.0),
@@ -95,7 +91,8 @@ class PageTwo extends StatelessWidget {
           "Esmeraldas Province, Ecuador",
           "Ecuador"
         ],
-        onDone: (AddressPoint point) async {
+        onDone: (_, AddressPoint point) {
+          FocusScope.of(context).requestFocus(FocusNode());
           // I use toast dependency to prettier show the result
           Toast.show(
             point.toString(),

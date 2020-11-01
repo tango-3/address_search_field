@@ -1,4 +1,7 @@
-library address_search_text_field;
+/// An address search box that gets nearby addresses by typing a reference,
+/// returns an object with place primary data. The object can also find an
+/// address using coordinates.
+library address_search_field;
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -11,10 +14,10 @@ part 'src/models/address_point.dart';
 part 'src/services/location_service.dart';
 part 'src/widgets/address_search_box.dart';
 
-/// A [TextField] wich [onTap] shows
+/// A [TextField] wich `onTap` shows
 /// a custom [AlertDialog] with a search bar and a
 /// list with results called [AddressSearchBox].
-class AddressSearchTextField extends StatelessWidget {
+class AddressSearchField extends StatelessWidget {
   /// Controls the text being edited.
   ///
   /// If null, this widget will create its own [TextEditingController].
@@ -58,15 +61,16 @@ class AddressSearchTextField extends StatelessWidget {
   final bool coordForRef;
 
   /// Callback to run when search ends.
-  final FutureOr<void> Function(AddressPoint point) onDone;
+  final FutureOr<void> Function(BuildContext dialogContext, AddressPoint point)
+      onDone;
 
   /// Callback to run if the user no sends data.
   final FutureOr<void> Function() onCleaned;
 
-  /// Creates a [TextField] wich [onTap] shows
+  /// Creates a [TextField] wich `onTap` shows
   /// a custom [AlertDialog] with a search bar and a
   /// list with results called [AddressSearchBox].
-  AddressSearchTextField({
+  AddressSearchField({
     TextEditingController controller,
     this.decoration = const InputDecoration(),
     this.style = const TextStyle(),
@@ -80,8 +84,11 @@ class AddressSearchTextField extends StatelessWidget {
     this.onDone,
     this.onCleaned,
   })  : assert(country.isNotEmpty, "Country can't be empty"),
+        assert(country != null),
+        assert(hintText != null),
+        assert(noResultsText != null),
         this.controller = controller ?? TextEditingController() {
-    LocationService.init();
+    initLocationService();
   }
 
   @override

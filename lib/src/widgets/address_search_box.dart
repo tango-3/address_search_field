@@ -1,4 +1,4 @@
-part of '../../address_search_text_field.dart';
+part of '../../address_search_field.dart';
 
 /// Widget based in an [AlertDialog] with a search bar and list of results,
 /// all in one box.
@@ -27,7 +27,8 @@ class AddressSearchBox extends StatefulWidget {
   final bool coordForRef;
 
   /// Callback to run when search ends.
-  final FutureOr<void> Function(AddressPoint point) onDone;
+  final FutureOr<void> Function(BuildContext dialogContext, AddressPoint point)
+      onDone;
 
   /// Callback to run if the user no sends data.
   final FutureOr<void> Function() onCleaned;
@@ -44,6 +45,9 @@ class AddressSearchBox extends StatefulWidget {
     this.onDone,
     this.onCleaned,
   })  : assert(country.isNotEmpty, "Country can't be empty"),
+        assert(country != null),
+        assert(hintText != null),
+        assert(noResultsText != null),
         this.controller = controller ?? TextEditingController();
 
   @override
@@ -69,10 +73,12 @@ class _AddressSearchBoxState extends State<AddressSearchBox> {
   final String noResultsText;
   final List<String> exceptions;
   final bool coordForRef;
-  final FutureOr<void> Function(AddressPoint value) onDone;
+  final FutureOr<void> Function(BuildContext context, AddressPoint point)
+      onDone;
   final FutureOr<void> Function() onCleaned;
   final AddressPoint _addressPoint = AddressPoint._();
   final List<String> _places = List();
+  BuildContext _dialogContext;
   Size _size = Size(0.0, 0.0);
   bool _loading;
   bool _waiting;
@@ -89,7 +95,7 @@ class _AddressSearchBoxState extends State<AddressSearchBox> {
     this.onDone,
     this.onCleaned,
   ) {
-    LocationService.init();
+    initLocationService();
   }
 
   @override
@@ -102,6 +108,7 @@ class _AddressSearchBoxState extends State<AddressSearchBox> {
 
   @override
   Widget build(BuildContext context) {
+    _dialogContext = context;
     _size = MediaQuery.of(context).size;
     return SimpleDialog(
       contentPadding: EdgeInsets.all(0.0),
@@ -284,17 +291,15 @@ class _AddressSearchBoxState extends State<AddressSearchBox> {
               if (!_places.contains(place) &&
                   place.endsWith(country) &&
                   !exceptions.contains(place)) _places.add(place);
-              if (addresses.length == index + 1) {
-                _loading = false;
-                try {
-                  setState(() {});
-                } catch (_) {}
-              }
             });
           }
         } on NoSuchMethodError catch (_) {} on PlatformException catch (_) {} catch (_) {
           debugPrint("ERROR CATCHED: " + _.toString());
         }
+        _loading = false;
+        try {
+          setState(() {});
+        } catch (_) {}
       }
     });
   }
@@ -310,7 +315,7 @@ class _AddressSearchBoxState extends State<AddressSearchBox> {
       _addressPoint._latitude = 0.0;
       _addressPoint._longitude = 0.0;
     }
-    if (onDone != null) await onDone(_addressPoint);
+    if (onDone != null) await onDone(_dialogContext, _addressPoint);
     _waiting = false;
     _places.clear();
     try {
